@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gift Center Pi</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script defer src="https://sdk.minepi.com/pi-sdk.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #6b3ce3;
+    }
+    p {
+      font-size: 18px;
+      color: #444;
+    }
+    button {
+      padding: 12px 24px;
+      background-color: #8b4dff;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #7a3bdd;
+    }
+    #status {
+      margin-top: 25px;
+      font-size: 17px;
+      color: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎁 Gift Center Pi</h1>
+  <p>Login & Donate 0.001 Pi (Testnet)</p>
+
+  <button id="loginBtn">Login with Pi</button>
+
+  <div id="status"></div>
+
+  <script>
+    const loginBtn = document.getElementById("loginBtn");
+    const statusDiv = document.getElementById("status");
+
+    loginBtn.addEventListener("click", () => {
+      if (!window.Pi) {
+        alert("Pi SDK not available. Please open in Pi Browser.");
+        return;
+      }
+
+      window.Pi.authenticate(["username", "payments"], function(auth) {
+        const username = auth.user.username;
+        const accessToken = auth.accessToken;
+
+        statusDiv.innerHTML = \`✅ Logged in as <b>\${username}</b><br><br>
+        <button onclick="donatePi('\${username}', '\${accessToken}')">Donate 0.001 Pi</button>\`;
+      }, function(error) {
+        statusDiv.innerHTML = "❌ Login error: " + error;
+      });
+    });
+
+    function donatePi(username, accessToken) {
+      window.Pi.createPayment({
+        amount: 0.001,
+        memo: \`Donation by \${username}\`,
+        metadata: { user: username }
+      }, {
+        onReadyForServerApproval: function(paymentId) {
+          alert("🕒 Payment created (no backend, will auto-cancel after timeout)");
+        },
+
+        onReadyForServerCompletion: function(paymentId, txid) {
+          alert("✅ Payment ready for completion (frontend only)");
+        },
+
+        onCancelled: function(paymentId) {
+          alert("❌ Payment cancelled.");
+        },
+
+        onCompleted: function(paymentId, txid) {
+          alert("✅ Payment complete! Thank you.");
+        },
+
+        onError: function(error, payment) {
+          alert("⚠️ Payment error: " + error);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
